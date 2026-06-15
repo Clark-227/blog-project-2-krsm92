@@ -63,7 +63,7 @@
                 echo "<p>No posts were found for this author.</p>";
                 echo "<a href='blog.php'>&larr; Back to all posts</a>";
             } else {
-                // Loop sthrough and render each post as a card
+                // Loops through and render each post as a card
                 foreach ($posts as $row) {
                     $date = date_create($row->date);
 
