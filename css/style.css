@@ -1,2 +1,66 @@
-/* style.css */
+/* style.css — CTEC 227 Blog */
 
+/*  Post card  */
+.post-card {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 1.5rem;
+}
+
+.post-card h2 a {
+    color: #1a1a2e;
+    text-decoration: none;
+}
+
+.post-card h2 a:hover {
+    color: #c0392b;
+}
+
+/*  Post meta (author / date line)  */
+.post-meta {
+    font-size: .85rem;
+    color: #6b7280;
+}
+
+.post-meta a {
+    color: #6b7280;
+    text-decoration: none;
+}
+
+.post-meta a:hover {
+    color: #c0392b;
+}
+
+/*  Category / tag badges  */
+.badge-category {
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: #f8f7f4;
+    border: 1px solid #dee2e6;
+    color: #6b7280;
+    padding: .15rem .5rem;
+    border-radius: 3px;
+    text-decoration: none;
+}
+
+.badge-category:hover {
+    background: #c0392b;
+    color: #fff;
+    border-color: #c0392b;
+}
+
+/*  Read more link  */
+.read-more {
+    font-size: .85rem;
+    font-weight: 600;
+    color: #c0392b;
+    text-decoration: none;
+}
+
+.read-more:hover {
+    color: #96281b;
+    text-decoration: underline;
+}

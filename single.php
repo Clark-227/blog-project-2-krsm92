@@ -1,3 +1,5 @@
+<?php require "inc/db_connect.inc.php"; // connect to the blog database 
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -9,36 +11,41 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
     <!-- Custom styles -->
     <link rel="stylesheet" href="css/style.css">
-    <title>CTEC 227 Blog</title>
+    <title>Blog Post</title>
 </head>
 
 <body>
+
+    <?php
+    // Require a post ID in the URL
+    if (!isset($_GET['id'])) {
+        die("<p>No post ID provided.</p>");
+    }
+    $blog_id = $_GET['id'];
+    ?>
 
     <!-- Include the navbar -->
     <?php require "inc/navbar.inc.php"; ?>
 
     <div class="container mt-5">
-        <h1 class="mb-4">Latest Posts</h1>
-        <hr>
 
         <?php
-        require "inc/db_connect.inc.php"; // connect to the blog database
-        require "inc/functions.inc.php";  // limit_text helper
+        // SQL to get a single post with its author
+        $stmt = $db->prepare(
+            "SELECT post.post_id, post.title, post.date, post.content,
+                    author.author_id, author.first_name, author.last_name
+                FROM post
+                JOIN author ON post.author = author.author_id
+                WHERE post.post_id = :blog_id"
+        );
+        $stmt->execute(["blog_id" => $blog_id]);
+        $row = $stmt->fetch();
 
-        // SQL to get all blog posts with author info, newest first
-        $sql = "SELECT post.post_id, post.title, post.date, post.content,
-                   author.author_id, author.first_name, author.last_name
-            FROM post
-            JOIN author ON post.author = author.author_id
-            ORDER BY post.date DESC";
-
-        // PDO prepared statement
-        $stmt = $db->prepare($sql);
-        $stmt->execute();
-        $posts = $stmt->fetchAll();
-
-        // Loop through each post
-        foreach ($posts as $row) {
+        // Unknown post ID
+        if (!$row) {
+            echo "<p>Post not found.</p>";
+            echo "<a href='blog.php'>&larr; Back to Blog</a>";
+        } else {
 
             // Format the date
             $date = date_create($row->date);
@@ -46,15 +53,15 @@
             // Get categories for this post
             $stmt_cat = $db->prepare(
                 "SELECT post_category.category_id, category.category
-             FROM post_category
-             JOIN category ON post_category.category_id = category.category_id
-             WHERE post_category.post_id = :post_id"
+                    FROM post_category
+                    JOIN category ON post_category.category_id = category.category_id
+                    WHERE post_category.post_id = :post_id"
             );
             $stmt_cat->execute(["post_id" => $row->post_id]);
             $categories = $stmt_cat->fetchAll();
 
             // Build category links; singular vs plural label
-            $cat_label = count($categories) === 1 ? "Category" : "Categories";
+            $label = count($categories) === 1 ? "Category" : "Categories";
             $cat_links = [];
             foreach ($categories as $cat) {
                 $cat_links[] = "<a class='badge-category' href='category.php?id=" . htmlspecialchars($cat->category_id) . "'>" . htmlspecialchars($cat->category) . "</a>";
@@ -63,9 +70,9 @@
             // Get tags for this post
             $stmt_tag = $db->prepare(
                 "SELECT post_tag.tag_id, tag.tag
-             FROM post_tag
-             JOIN tag ON post_tag.tag_id = tag.id
-             WHERE post_tag.post_id = :post_id"
+                    FROM post_tag
+                    JOIN tag ON post_tag.tag_id = tag.id
+                    WHERE post_tag.post_id = :post_id"
             );
             $stmt_tag->execute(["post_id" => $row->post_id]);
             $tags = $stmt_tag->fetchAll();
@@ -76,36 +83,31 @@
                 $tag_links[] = "<a class='badge-category' href='tag.php?id=" . htmlspecialchars($tag->tag_id) . "'>" . htmlspecialchars($tag->tag) . "</a>";
             }
 
-            // Output the post card
-            echo "<div class='post-card mb-4'>";
-
-            // Title links to single post page
-            echo "<h2><a href='single.php?id=" . htmlspecialchars($row->post_id) . "'>" . htmlspecialchars($row->title) . "</a></h2>";
+            // Output the post
+            echo "<h2>" . htmlspecialchars($row->title) . "</h2>";
             echo "<hr>";
 
             // Author link and date
-            echo "<p class='post-meta'>"
+            echo "<p class='fw-bold'>"
                 . "<a href='author.php?id=" . htmlspecialchars($row->author_id) . "'>"
                 . htmlspecialchars($row->first_name) . " " . htmlspecialchars($row->last_name)
                 . "</a>"
-                . " | " . $date->format('M d, Y')
+                . " - " . $date->format('M d, Y')
                 . "</p>";
 
             // Categories
             if (!empty($cat_links)) {
-                echo "<p><strong>" . $cat_label . ":</strong> " . implode(" ", $cat_links) . "</p>";
+                echo "<p><strong>" . $label . ":</strong> " . implode(", ", $cat_links) . "</p>";
             }
 
             // Tags
             if (!empty($tag_links)) {
-                echo "<p><strong>Tags:</strong> " . implode(" ", $tag_links) . "</p>";
+                echo "<p><strong>Tags:</strong> " . implode(", ", $tag_links) . "</p>";
             }
 
-            // 15-word preview
-            echo "<p>" . htmlspecialchars(limit_text($row->content, 15)) . "</p>";
-            echo "<a class='read-more' href='single.php?id=" . htmlspecialchars($row->post_id) . "'>Read more &rarr;</a>";
-
-            echo "</div>"; // closing .post-card
+            // Full post content
+            echo "<p>" . htmlspecialchars($row->content) . "</p>";
+            echo "<a href='blog.php'>&larr; Back to Blog</a>";
         }
         ?>
 

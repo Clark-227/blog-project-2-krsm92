@@ -1,7 +1,7 @@
 <?php
 $host = 'localhost';
 $user = 'root';
-$password = 'kona1130';
+$password = '';
 $dbname = 'blog'; // you need to create this database if it does not exist
 
 // DSN - Data Source Name
